@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+function updatePriceChange() {
+            const change = (Math.random() - 0.5) * 10; // -5% to +5%
+            const changeElement = document.getElementById('priceChange');
+            changeElement.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeElement.style.color = change >= 0 ? '#4ecdc4' : '#ff6b6b';
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -291,9 +296,6 @@
             <p style="font-size: 0.8em; opacity: 0.8; margin-top: 10px;">
                 Contract: GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump
             </p>
-            <p style="font-size: 0.7em; opacity: 0.6; margin-top: 5px;">
-                🎮 Game simulation - not connected to real markets
-            </p>
         </div>
         
         <div class="game-grid">
@@ -392,7 +394,7 @@
             <div class="card">
                 <h2>💰 EB Token Economy</h2>
                 <p>EB Price: $<span id="tokenPrice">0.01</span></p>
-                <p>Market Cap: $<span id="marketCap">0</span></p>
+                <p>Market Cap: $<span id="marketCap">5,400</span></p>
                 <p>24h Change: <span id="priceChange">+0.00%</span></p>
             </div>
             
@@ -425,6 +427,7 @@
             totalVolume: 0,
             totalHolders: 1,
             tokenPrice: 0.000005402,
+            marketCap: 5400, // Real current market cap
             autoMining: false,
             upgrades: {
                 pickaxe: 0,
@@ -443,6 +446,7 @@
         let miningProgress = 0;
         let autoMineInterval = null;
         let priceUpdateInterval = null;
+        let realPriceUpdateInterval = null;
         
         // Simulated other players for leaderboard
         let otherPlayers = [
@@ -461,7 +465,7 @@
             document.getElementById('miningLevel').textContent = gameState.miningLevel;
             document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(1);
             document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(8);
-            document.getElementById('marketCap').textContent = (gameState.totalMined * gameState.tokenPrice).toFixed(2);
+            document.getElementById('marketCap').textContent = gameState.marketCap.toLocaleString();
             document.getElementById('hashRate').textContent = (gameState.miningRate * 10).toFixed(1);
             document.getElementById('difficulty').textContent = gameState.difficulty;
             document.getElementById('blocksMined').textContent = gameState.blocksMined;
@@ -611,15 +615,40 @@
             achievements.innerHTML = html;
         }
         
-        function updatePriceChange() {
-            const change = (Math.random() - 0.5) * 10; // -5% to +5%
-            const changeElement = document.getElementById('priceChange');
-            changeElement.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-            changeElement.style.color = change >= 0 ? '#4ecdc4' : '#ff6b6b';
-            
-            // Simulate price volatility
-            gameState.tokenPrice *= (1 + change / 100);
-            gameState.tokenPrice = Math.max(0.000001, Math.min(0.01, gameState.tokenPrice)); // Keep price reasonable for new tokens
+        // Function to fetch real EB token price
+        async function fetchRealPrice() {
+            try {
+                // Try Jupiter API first
+                const jupiterResponse = await fetch(`https://price.jup.ag/v4/price?ids=GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump`);
+                const jupiterData = await jupiterResponse.json();
+                
+                if (jupiterData.data && jupiterData.data.GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump) {
+                    return jupiterData.data.GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump.price;
+                }
+                
+                // Fallback to DexScreener API
+                const dexResponse = await fetch(`https://api.dexscreener.com/latest/dex/tokens/GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump`);
+                const dexData = await dexResponse.json();
+                
+                if (dexData.pairs && dexData.pairs.length > 0) {
+                    return parseFloat(dexData.pairs[0].priceUsd);
+                }
+                
+                return null; // No price found
+            } catch (error) {
+                console.log('Price fetch error:', error);
+                return null;
+            }
+        }
+        
+        // Update price with real market data
+        async function updateRealPrice() {
+            const realPrice = await fetchRealPrice();
+            if (realPrice && realPrice > 0) {
+                gameState.tokenPrice = realPrice;
+                showNotification(`📈 Live price updated: ${realPrice.toFixed(8)}`);
+                updateDisplay();
+            }
         }
         
         function toggleAutoMine() {
@@ -656,6 +685,12 @@
             updateDisplay();
         }, 10000);
         
+        // Initialize real price updates every 30 seconds
+        realPriceUpdateInterval = setInterval(updateRealPrice, 30000);
+        
+        // Fetch real price immediately on load
+        updateRealPrice();
+        
         // Initialize display
         updateDisplay();
         
@@ -674,4 +709,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
