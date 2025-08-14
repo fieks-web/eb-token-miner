@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Mining Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            color: #4ecdc4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mining-section {
+            text-align: center;
+        }
+        
+        .balance {
+            font-size: 2em;
+            margin: 20px 0;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .mine-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mine-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+        
+        .mine-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .upgrade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .upgrade-btn {
+            background: linear-gradient(45deg, #45b7d1, #96c93d);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .upgrade-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .leaderboard {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .leader-rank {
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .mining-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .bottom-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .auto-mine-toggle {
+            margin: 20px 0;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 EB Token Miner</h1>
+            <p>Mine EB tokens and build your crypto empire!</p>
+            <p style="font-size: 0.8em; opacity: 0.8; margin-top: 10px;">
+                Contract: GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump
+            </p>
+        </div>
+        
+        <div class="game-grid">
+            <div class="card">
+                <h2>⛏️ Mining Station</h2>
+                <div class="mining-section">
+                    <div class="balance" id="balance">0.00 EB</div>
+                    <button class="mine-btn" id="mineBtn" onclick="mine()">MINE NOW</button>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="miningProgress"></div>
+                    </div>
+                    <p>Mining Rate: <span id="miningRate">1.0</span> EB/click</p>
+                    
+                    <div class="auto-mine-toggle">
+                        <label>Auto-Mine: </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoMineToggle" onchange="toggleAutoMine()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📈 Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalMined">0</div>
+                        <div>Total Mined</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalVolume">$0</div>
+                        <div>Volume</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalHolders">1</div>
+                        <div>Holders</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="miningLevel">1</div>
+                        <div>Mining Level</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-grid">
+            <div class="card">
+                <h2>🔧 Upgrades</h2>
+                <div id="upgradesList">
+                    <div class="upgrade-item">
+                        <div>
+                            <strong>Better Pickaxe</strong><br>
+                            <small>+0.5 mining rate</small>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('pickaxe')">
+                            Buy (10 EB)
+                        </button>
+                    </div>
+                    <div class="upgrade-item">
+                        <div>
+                            <strong>Mining Rig</strong><br>
+                            <small>+2.0 mining rate</small>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('rig')">
+                            Buy (50 EB)
+                        </button>
+                    </div>
+                    <div class="upgrade-item">
+                        <div>
+                            <strong>Quantum Miner</strong><br>
+                            <small>+10.0 mining rate</small>
+                        </div>
+                        <button class="upgrade-btn" onclick="buyUpgrade('quantum')">
+                            Buy (500 EB)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🏆 Leaderboard</h2>
+                <div class="leaderboard" id="leaderboard">
+                    <div class="leader-item">
+                        <div>
+                            <span class="leader-rank">#1</span>
+                            <span>You</span>
+                        </div>
+                        <span id="playerBalance">0 EB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-stats">
+            <div class="card">
+                <h2>💰 EB Token Economy</h2>
+                <p>EB Price: $<span id="tokenPrice">0.01</span></p>
+                <p>Market Cap: $<span id="marketCap">0</span></p>
+                <p>24h Change: <span id="priceChange">+0.00%</span></p>
+            </div>
+            
+            <div class="card">
+                <h2>⚡ Mining Stats</h2>
+                <p>Hash Rate: <span id="hashRate">1.0</span> H/s</p>
+                <p>Difficulty: <span id="difficulty">1</span></p>
+                <p>Blocks Mined: <span id="blocksMined">0</span></p>
+            </div>
+            
+            <div class="card">
+                <h2>🎯 Achievements</h2>
+                <div id="achievements">
+                    <p>🥉 First Mine (0/1)</p>
+                    <p>🥈 Hundred Club (0/100)</p>
+                    <p>🥇 Thousand Club (0/1000)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        let gameState = {
+            balance: 0,
+            totalMined: 0,
+            miningRate: 1.0,
+            miningLevel: 1,
+            totalVolume: 0,
+            totalHolders: 1,
+            tokenPrice: 0.01,
+            autoMining: false,
+            upgrades: {
+                pickaxe: 0,
+                rig: 0,
+                quantum: 0
+            },
+            achievements: {
+                firstMine: false,
+                hundredClub: false,
+                thousandClub: false
+            },
+            blocksMined: 0,
+            difficulty: 1
+        };
+        
+        let miningProgress = 0;
+        let autoMineInterval = null;
+        let priceUpdateInterval = null;
+        
+        // Simulated other players for leaderboard
+        let otherPlayers = [
+            { name: "CryptoKing", balance: Math.random() * 1000 + 500 },
+            { name: "MiningMaster", balance: Math.random() * 800 + 400 },
+            { name: "TokenHunter", balance: Math.random() * 600 + 300 },
+            { name: "DigitalMiner", balance: Math.random() * 500 + 200 },
+            { name: "BlockchainBoss", balance: Math.random() * 400 + 100 }
+        ];
+        
+        function updateDisplay() {
+            document.getElementById('balance').textContent = `${gameState.balance.toFixed(2)} EB`;
+            document.getElementById('totalMined').textContent = gameState.totalMined.toFixed(0);
+            document.getElementById('totalVolume').textContent = `$${gameState.totalVolume.toFixed(2)}`;
+            document.getElementById('totalHolders').textContent = gameState.totalHolders;
+            document.getElementById('miningLevel').textContent = gameState.miningLevel;
+            document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(1);
+            document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(4);
+            document.getElementById('marketCap').textContent = (gameState.totalMined * gameState.tokenPrice).toFixed(2);
+            document.getElementById('hashRate').textContent = (gameState.miningRate * 10).toFixed(1);
+            document.getElementById('difficulty').textContent = gameState.difficulty;
+            document.getElementById('blocksMined').textContent = gameState.blocksMined;
+            document.getElementById('playerBalance').textContent = `${gameState.balance.toFixed(0)} EB`;
+            
+            updateUpgradeButtons();
+            updateLeaderboard();
+            updateAchievements();
+            updatePriceChange();
+        }
+        
+        function mine() {
+            const mineBtn = document.getElementById('mineBtn');
+            mineBtn.disabled = true;
+            mineBtn.classList.add('mining-animation');
+            
+            // Simulate mining time
+            miningProgress = 0;
+            const progressBar = document.getElementById('miningProgress');
+            
+            const miningInterval = setInterval(() => {
+                miningProgress += 2;
+                progressBar.style.width = miningProgress + '%';
+                
+                if (miningProgress >= 100) {
+                    clearInterval(miningInterval);
+                    completeMining();
+                }
+            }, 20);
+        }
+        
+        function completeMining() {
+            const mineBtn = document.getElementById('mineBtn');
+            const reward = gameState.miningRate * (0.8 + Math.random() * 0.4); // 80-120% of base rate
+            
+            gameState.balance += reward;
+            gameState.totalMined += reward;
+            gameState.totalVolume += reward * gameState.tokenPrice;
+            gameState.blocksMined += 1;
+            
+            // Level up system
+            const requiredForNextLevel = gameState.miningLevel * 100;
+            if (gameState.totalMined >= requiredForNextLevel) {
+                gameState.miningLevel++;
+                gameState.miningRate += 0.1;
+                gameState.difficulty = Math.floor(gameState.miningLevel / 2) + 1;
+                showNotification(`Level up! Now level ${gameState.miningLevel}`);
+            }
+            
+            // Random chance to add new holders
+            if (Math.random() < 0.1) {
+                gameState.totalHolders += Math.floor(Math.random() * 3) + 1;
+            }
+            
+            // Update other players' balances
+            otherPlayers.forEach(player => {
+                player.balance += Math.random() * 5;
+            });
+            
+            showNotification(`+${reward.toFixed(2)} EB mined!`);
+            
+            mineBtn.disabled = false;
+            mineBtn.classList.remove('mining-animation');
+            document.getElementById('miningProgress').style.width = '0%';
+            
+            updateDisplay();
+        }
+        
+        function buyUpgrade(type) {
+            const costs = { pickaxe: 10, rig: 50, quantum: 500 };
+            const boosts = { pickaxe: 0.5, rig: 2.0, quantum: 10.0 };
+            
+            const cost = costs[type] * (gameState.upgrades[type] + 1);
+            
+            if (gameState.balance >= cost) {
+                gameState.balance -= cost;
+                gameState.upgrades[type]++;
+                gameState.miningRate += boosts[type];
+                gameState.totalVolume += cost * gameState.tokenPrice;
+                
+                showNotification(`Upgrade purchased! Mining rate increased!`);
+                updateDisplay();
+            } else {
+                showNotification(`Not enough EB! Need ${cost.toFixed(0)} EB.`);
+            }
+        }
+        
+        function updateUpgradeButtons() {
+            const costs = { pickaxe: 10, rig: 50, quantum: 500 };
+            const buttons = document.querySelectorAll('.upgrade-btn');
+            
+            buttons.forEach((btn, index) => {
+                const types = ['pickaxe', 'rig', 'quantum'];
+                const type = types[index];
+                const cost = costs[type] * (gameState.upgrades[type] + 1);
+                
+                btn.textContent = `Buy (${cost} EB)`;
+                btn.disabled = gameState.balance < cost;
+            });
+        }
+        
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard');
+            const allPlayers = [...otherPlayers, { name: "You", balance: gameState.balance }];
+            allPlayers.sort((a, b) => b.balance - a.balance);
+            
+            leaderboard.innerHTML = '';
+            allPlayers.slice(0, 6).forEach((player, index) => {
+                const div = document.createElement('div');
+                div.className = 'leader-item';
+                div.innerHTML = `
+                    <div>
+                        <span class="leader-rank">#${index + 1}</span>
+                        <span>${player.name}</span>
+                    </div>
+                    <span>${player.balance.toFixed(0)} EB</span>
+                `;
+                leaderboard.appendChild(div);
+            });
+        }
+        
+        function updateAchievements() {
+            const achievements = document.getElementById('achievements');
+            let html = '';
+            
+            if (gameState.totalMined >= 1) {
+                gameState.achievements.firstMine = true;
+                html += '<p>🥉 First Mine ✓</p>';
+            } else {
+                html += '<p>🥉 First Mine (0/1)</p>';
+            }
+            
+            if (gameState.totalMined >= 100) {
+                gameState.achievements.hundredClub = true;
+                html += '<p>🥈 Hundred Club ✓</p>';
+            } else {
+                html += `<p>🥈 Hundred Club (${Math.min(gameState.totalMined.toFixed(0), 100)}/100)</p>`;
+            }
+            
+            if (gameState.totalMined >= 1000) {
+                gameState.achievements.thousandClub = true;
+                html += '<p>🥇 Thousand Club ✓</p>';
+            } else {
+                html += `<p>🥇 Thousand Club (${Math.min(gameState.totalMined.toFixed(0), 1000)}/1000)</p>`;
+            }
+            
+            achievements.innerHTML = html;
+        }
+        
+        function updatePriceChange() {
+            const change = (Math.random() - 0.5) * 10; // -5% to +5%
+            const changeElement = document.getElementById('priceChange');
+            changeElement.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeElement.style.color = change >= 0 ? '#4ecdc4' : '#ff6b6b';
+            
+            // Simulate price volatility
+            gameState.tokenPrice *= (1 + change / 100);
+            gameState.tokenPrice = Math.max(0.001, Math.min(1.0, gameState.tokenPrice)); // Keep price reasonable
+        }
+        
+        function toggleAutoMine() {
+            gameState.autoMining = document.getElementById('autoMineToggle').checked;
+            
+            if (gameState.autoMining) {
+                autoMineInterval = setInterval(() => {
+                    if (!document.getElementById('mineBtn').disabled) {
+                        mine();
+                    }
+                }, 3000);
+                showNotification('Auto-mining enabled!');
+            } else {
+                if (autoMineInterval) {
+                    clearInterval(autoMineInterval);
+                }
+                showNotification('Auto-mining disabled!');
+            }
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize price updates
+        priceUpdateInterval = setInterval(() => {
+            updatePriceChange();
+            updateDisplay();
+        }, 10000);
+        
+        // Initialize display
+        updateDisplay();
+        
+        // Save game state periodically (Note: localStorage may not work in all environments)
+        setInterval(() => {
+            try {
+                localStorage.setItem('cryptoMiningGame', JSON.stringify(gameState));
+            } catch (e) {
+                // localStorage not available, continue without saving
+            }
+        }, 5000);
+        
+        // Load game state on start
+        window.addEventListener('load', () => {
+            try {
+                const saved = localStorage.getItem('cryptoMiningGame');
+                if (saved) {
+                    gameState = { ...gameState, ...JSON.parse(saved) };
+                    updateDisplay();
+                }
+            } catch (e) {
+                // localStorage not available or corrupted, start fresh
+            }
+        });
+    </script>
+</body>
+                  </html>
