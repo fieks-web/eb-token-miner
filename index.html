@@ -291,6 +291,9 @@
             <p style="font-size: 0.8em; opacity: 0.8; margin-top: 10px;">
                 Contract: GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump
             </p>
+            <p style="font-size: 0.7em; opacity: 0.6; margin-top: 5px;">
+                🎮 Game simulation - not connected to real markets
+            </p>
         </div>
         
         <div class="game-grid">
@@ -421,7 +424,7 @@
             miningLevel: 1,
             totalVolume: 0,
             totalHolders: 1,
-            tokenPrice: 0.01,
+            tokenPrice: 0.000005402,
             autoMining: false,
             upgrades: {
                 pickaxe: 0,
@@ -457,7 +460,7 @@
             document.getElementById('totalHolders').textContent = gameState.totalHolders;
             document.getElementById('miningLevel').textContent = gameState.miningLevel;
             document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(1);
-            document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(4);
+            document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(8);
             document.getElementById('marketCap').textContent = (gameState.totalMined * gameState.tokenPrice).toFixed(2);
             document.getElementById('hashRate').textContent = (gameState.miningRate * 10).toFixed(1);
             document.getElementById('difficulty').textContent = gameState.difficulty;
@@ -616,7 +619,7 @@
             
             // Simulate price volatility
             gameState.tokenPrice *= (1 + change / 100);
-            gameState.tokenPrice = Math.max(0.001, Math.min(1.0, gameState.tokenPrice)); // Keep price reasonable
+            gameState.tokenPrice = Math.max(0.000001, Math.min(0.01, gameState.tokenPrice)); // Keep price reasonable for new tokens
         }
         
         function toggleAutoMine() {
@@ -656,27 +659,19 @@
         // Initialize display
         updateDisplay();
         
-        // Save game state periodically (Note: localStorage may not work in all environments)
+        // Save game state periodically
         setInterval(() => {
-            try {
-                localStorage.setItem('cryptoMiningGame', JSON.stringify(gameState));
-            } catch (e) {
-                // localStorage not available, continue without saving
-            }
+            localStorage.setItem('cryptoMiningGame', JSON.stringify(gameState));
         }, 5000);
         
         // Load game state on start
         window.addEventListener('load', () => {
-            try {
-                const saved = localStorage.getItem('cryptoMiningGame');
-                if (saved) {
-                    gameState = { ...gameState, ...JSON.parse(saved) };
-                    updateDisplay();
-                }
-            } catch (e) {
-                // localStorage not available or corrupted, start fresh
+            const saved = localStorage.getItem('cryptoMiningGame');
+            if (saved) {
+                gameState = { ...gameState, ...JSON.parse(saved) };
+                updateDisplay();
             }
         });
     </script>
 </body>
-                  </html>
+    </html>
