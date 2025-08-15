@@ -1,14 +1,9 @@
-function updatePriceChange() {
-            const change = (Math.random() - 0.5) * 10; // -5% to +5%
-            const changeElement = document.getElementById('priceChange');
-            changeElement.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-            changeElement.style.color = change >= 0 ? '#4ecdc4' : '#ff6b6b';
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Mining Game</title>
+    <title>EB Token Miner - Live Trading Game</title>
     <style>
         * {
             margin: 0;
@@ -47,6 +42,16 @@ function updatePriceChange() {
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+        
+        .live-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #4ecdc4;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
         }
         
         .game-grid {
@@ -92,6 +97,12 @@ function updatePriceChange() {
             margin: 20px 0;
             color: #ff6b6b;
             font-weight: bold;
+        }
+        
+        .usd-value {
+            font-size: 1.2em;
+            color: #4ecdc4;
+            margin: 10px 0;
         }
         
         .mine-btn {
@@ -286,16 +297,45 @@ function updatePriceChange() {
         input:checked + .slider:before {
             transform: translateX(26px);
         }
+        
+        .price-positive {
+            color: #4ecdc4;
+        }
+        
+        .price-negative {
+            color: #ff6b6b;
+        }
+        
+        .pump-fun-link {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .pump-fun-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚀 EB Token Miner</h1>
-            <p>Mine EB tokens and build your crypto empire!</p>
+            <p><span class="live-indicator"></span>Mine EB tokens with live Pump.fun prices!</p>
             <p style="font-size: 0.8em; opacity: 0.8; margin-top: 10px;">
                 Contract: GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump
             </p>
+            <a href="https://pump.fun/GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump" 
+               target="_blank" class="pump-fun-link">
+               🔥 Trade on Pump.fun
+            </a>
         </div>
         
         <div class="game-grid">
@@ -303,6 +343,7 @@ function updatePriceChange() {
                 <h2>⛏️ Mining Station</h2>
                 <div class="mining-section">
                     <div class="balance" id="balance">0.00 EB</div>
+                    <div class="usd-value" id="usdValue">$0.00 USD</div>
                     <button class="mine-btn" id="mineBtn" onclick="mine()">MINE NOW</button>
                     <div class="progress-bar">
                         <div class="progress-fill" id="miningProgress"></div>
@@ -320,7 +361,7 @@ function updatePriceChange() {
             </div>
             
             <div class="card">
-                <h2>📈 Statistics</h2>
+                <h2>📈 Live Market Data</h2>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="totalMined">0</div>
@@ -328,16 +369,19 @@ function updatePriceChange() {
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="totalVolume">$0</div>
-                        <div>Volume</div>
+                        <div>Your Volume</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="totalHolders">1</div>
-                        <div>Holders</div>
+                        <div class="stat-value" id="realVolume">$0</div>
+                        <div>24h Volume</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="miningLevel">1</div>
                         <div>Mining Level</div>
                     </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <p>Last Update: <span id="lastUpdate">Never</span></p>
                 </div>
             </div>
         </div>
@@ -392,10 +436,11 @@ function updatePriceChange() {
         
         <div class="bottom-stats">
             <div class="card">
-                <h2>💰 EB Token Economy</h2>
-                <p>EB Price: $<span id="tokenPrice">0.01</span></p>
+                <h2>💰 EB Token Live Price</h2>
+                <p>EB Price: $<span id="tokenPrice">0.000005402</span></p>
                 <p>Market Cap: $<span id="marketCap">5,400</span></p>
                 <p>24h Change: <span id="priceChange">+0.00%</span></p>
+                <p>Liquidity: $<span id="liquidity">0</span></p>
             </div>
             
             <div class="card">
@@ -403,6 +448,7 @@ function updatePriceChange() {
                 <p>Hash Rate: <span id="hashRate">1.0</span> H/s</p>
                 <p>Difficulty: <span id="difficulty">1</span></p>
                 <p>Blocks Mined: <span id="blocksMined">0</span></p>
+                <p>Network Status: <span id="networkStatus">🟢 Online</span></p>
             </div>
             
             <div class="card">
@@ -411,6 +457,7 @@ function updatePriceChange() {
                     <p>🥉 First Mine (0/1)</p>
                     <p>🥈 Hundred Club (0/100)</p>
                     <p>🥇 Thousand Club (0/1000)</p>
+                    <p>💎 Diamond Hands (0/10000)</p>
                 </div>
             </div>
         </div>
@@ -425,9 +472,8 @@ function updatePriceChange() {
             miningRate: 1.0,
             miningLevel: 1,
             totalVolume: 0,
-            totalHolders: 1,
             tokenPrice: 0.000005402,
-            marketCap: 5400, // Real current market cap
+            marketCap: 5400,
             autoMining: false,
             upgrades: {
                 pickaxe: 0,
@@ -437,16 +483,23 @@ function updatePriceChange() {
             achievements: {
                 firstMine: false,
                 hundredClub: false,
-                thousandClub: false
+                thousandClub: false,
+                diamondHands: false
             },
             blocksMined: 0,
-            difficulty: 1
+            difficulty: 1,
+            realTimeData: {
+                volume24h: 0,
+                priceChange24h: 0,
+                liquidity: 0,
+                holders: 0
+            }
         };
         
         let miningProgress = 0;
         let autoMineInterval = null;
         let priceUpdateInterval = null;
-        let realPriceUpdateInterval = null;
+        let lastPriceUpdate = null;
         
         // Simulated other players for leaderboard
         let otherPlayers = [
@@ -459,22 +512,35 @@ function updatePriceChange() {
         
         function updateDisplay() {
             document.getElementById('balance').textContent = `${gameState.balance.toFixed(2)} EB`;
+            document.getElementById('usdValue').textContent = `$${(gameState.balance * gameState.tokenPrice).toFixed(6)} USD`;
             document.getElementById('totalMined').textContent = gameState.totalMined.toFixed(0);
-            document.getElementById('totalVolume').textContent = `$${gameState.totalVolume.toFixed(2)}`;
-            document.getElementById('totalHolders').textContent = gameState.totalHolders;
+            document.getElementById('totalVolume').textContent = `$${gameState.totalVolume.toFixed(6)}`;
+            document.getElementById('realVolume').textContent = `$${gameState.realTimeData.volume24h.toLocaleString()}`;
             document.getElementById('miningLevel').textContent = gameState.miningLevel;
             document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(1);
-            document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(8);
+            document.getElementById('tokenPrice').textContent = gameState.tokenPrice.toFixed(9);
             document.getElementById('marketCap').textContent = gameState.marketCap.toLocaleString();
+            document.getElementById('liquidity').textContent = gameState.realTimeData.liquidity.toLocaleString();
             document.getElementById('hashRate').textContent = (gameState.miningRate * 10).toFixed(1);
             document.getElementById('difficulty').textContent = gameState.difficulty;
             document.getElementById('blocksMined').textContent = gameState.blocksMined;
             document.getElementById('playerBalance').textContent = `${gameState.balance.toFixed(0)} EB`;
             
+            // Update last update time
+            if (lastPriceUpdate) {
+                document.getElementById('lastUpdate').textContent = new Date(lastPriceUpdate).toLocaleTimeString();
+            }
+            
             updateUpgradeButtons();
             updateLeaderboard();
             updateAchievements();
-            updatePriceChange();
+        }
+        
+        function updatePriceChange() {
+            const change = (Math.random() - 0.5) * 10; // -5% to +5%
+            const changeElement = document.getElementById('priceChange');
+            changeElement.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeElement.style.color = change >= 0 ? '#4ecdc4' : '#ff6b6b';
         }
         
         function mine() {
@@ -515,198 +581,13 @@ function updatePriceChange() {
                 showNotification(`Level up! Now level ${gameState.miningLevel}`);
             }
             
-            // Random chance to add new holders
-            if (Math.random() < 0.1) {
-                gameState.totalHolders += Math.floor(Math.random() * 3) + 1;
-            }
-            
             // Update other players' balances
             otherPlayers.forEach(player => {
                 player.balance += Math.random() * 5;
             });
             
-            showNotification(`+${reward.toFixed(2)} EB mined!`);
+            showNotification(`+${reward.toFixed(2)} EB mined! ($${(reward * gameState.tokenPrice).toFixed(6)})`);
             
             mineBtn.disabled = false;
             mineBtn.classList.remove('mining-animation');
             document.getElementById('miningProgress').style.width = '0%';
-            
-            updateDisplay();
-        }
-        
-        function buyUpgrade(type) {
-            const costs = { pickaxe: 10, rig: 50, quantum: 500 };
-            const boosts = { pickaxe: 0.5, rig: 2.0, quantum: 10.0 };
-            
-            const cost = costs[type] * (gameState.upgrades[type] + 1);
-            
-            if (gameState.balance >= cost) {
-                gameState.balance -= cost;
-                gameState.upgrades[type]++;
-                gameState.miningRate += boosts[type];
-                gameState.totalVolume += cost * gameState.tokenPrice;
-                
-                showNotification(`Upgrade purchased! Mining rate increased!`);
-                updateDisplay();
-            } else {
-                showNotification(`Not enough EB! Need ${cost.toFixed(0)} EB.`);
-            }
-        }
-        
-        function updateUpgradeButtons() {
-            const costs = { pickaxe: 10, rig: 50, quantum: 500 };
-            const buttons = document.querySelectorAll('.upgrade-btn');
-            
-            buttons.forEach((btn, index) => {
-                const types = ['pickaxe', 'rig', 'quantum'];
-                const type = types[index];
-                const cost = costs[type] * (gameState.upgrades[type] + 1);
-                
-                btn.textContent = `Buy (${cost} EB)`;
-                btn.disabled = gameState.balance < cost;
-            });
-        }
-        
-        function updateLeaderboard() {
-            const leaderboard = document.getElementById('leaderboard');
-            const allPlayers = [...otherPlayers, { name: "You", balance: gameState.balance }];
-            allPlayers.sort((a, b) => b.balance - a.balance);
-            
-            leaderboard.innerHTML = '';
-            allPlayers.slice(0, 6).forEach((player, index) => {
-                const div = document.createElement('div');
-                div.className = 'leader-item';
-                div.innerHTML = `
-                    <div>
-                        <span class="leader-rank">#${index + 1}</span>
-                        <span>${player.name}</span>
-                    </div>
-                    <span>${player.balance.toFixed(0)} EB</span>
-                `;
-                leaderboard.appendChild(div);
-            });
-        }
-        
-        function updateAchievements() {
-            const achievements = document.getElementById('achievements');
-            let html = '';
-            
-            if (gameState.totalMined >= 1) {
-                gameState.achievements.firstMine = true;
-                html += '<p>🥉 First Mine ✓</p>';
-            } else {
-                html += '<p>🥉 First Mine (0/1)</p>';
-            }
-            
-            if (gameState.totalMined >= 100) {
-                gameState.achievements.hundredClub = true;
-                html += '<p>🥈 Hundred Club ✓</p>';
-            } else {
-                html += `<p>🥈 Hundred Club (${Math.min(gameState.totalMined.toFixed(0), 100)}/100)</p>`;
-            }
-            
-            if (gameState.totalMined >= 1000) {
-                gameState.achievements.thousandClub = true;
-                html += '<p>🥇 Thousand Club ✓</p>';
-            } else {
-                html += `<p>🥇 Thousand Club (${Math.min(gameState.totalMined.toFixed(0), 1000)}/1000)</p>`;
-            }
-            
-            achievements.innerHTML = html;
-        }
-        
-        // Function to fetch real EB token price
-        async function fetchRealPrice() {
-            try {
-                // Try Jupiter API first
-                const jupiterResponse = await fetch(`https://price.jup.ag/v4/price?ids=GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump`);
-                const jupiterData = await jupiterResponse.json();
-                
-                if (jupiterData.data && jupiterData.data.GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump) {
-                    return jupiterData.data.GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump.price;
-                }
-                
-                // Fallback to DexScreener API
-                const dexResponse = await fetch(`https://api.dexscreener.com/latest/dex/tokens/GeS9XSyBmdErsodtG6RcG1zBF2ZC1Aey9G9rW2hEpump`);
-                const dexData = await dexResponse.json();
-                
-                if (dexData.pairs && dexData.pairs.length > 0) {
-                    return parseFloat(dexData.pairs[0].priceUsd);
-                }
-                
-                return null; // No price found
-            } catch (error) {
-                console.log('Price fetch error:', error);
-                return null;
-            }
-        }
-        
-        // Update price with real market data
-        async function updateRealPrice() {
-            const realPrice = await fetchRealPrice();
-            if (realPrice && realPrice > 0) {
-                gameState.tokenPrice = realPrice;
-                showNotification(`📈 Live price updated: ${realPrice.toFixed(8)}`);
-                updateDisplay();
-            }
-        }
-        
-        function toggleAutoMine() {
-            gameState.autoMining = document.getElementById('autoMineToggle').checked;
-            
-            if (gameState.autoMining) {
-                autoMineInterval = setInterval(() => {
-                    if (!document.getElementById('mineBtn').disabled) {
-                        mine();
-                    }
-                }, 3000);
-                showNotification('Auto-mining enabled!');
-            } else {
-                if (autoMineInterval) {
-                    clearInterval(autoMineInterval);
-                }
-                showNotification('Auto-mining disabled!');
-            }
-        }
-        
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // Initialize price updates
-        priceUpdateInterval = setInterval(() => {
-            updatePriceChange();
-            updateDisplay();
-        }, 10000);
-        
-        // Initialize real price updates every 30 seconds
-        realPriceUpdateInterval = setInterval(updateRealPrice, 30000);
-        
-        // Fetch real price immediately on load
-        updateRealPrice();
-        
-        // Initialize display
-        updateDisplay();
-        
-        // Save game state periodically
-        setInterval(() => {
-            localStorage.setItem('cryptoMiningGame', JSON.stringify(gameState));
-        }, 5000);
-        
-        // Load game state on start
-        window.addEventListener('load', () => {
-            const saved = localStorage.getItem('cryptoMiningGame');
-            if (saved) {
-                gameState = { ...gameState, ...JSON.parse(saved) };
-                updateDisplay();
-            }
-        });
-    </script>
-</body>
-</html>
